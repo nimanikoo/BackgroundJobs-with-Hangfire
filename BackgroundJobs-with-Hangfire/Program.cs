@@ -3,6 +3,7 @@ using BackgroundJobs_with_Hangfire.Data;
 using BackgroundJobs_with_Hangfire.Services;
 using BackgroundJobs_with_Hangfire.Services.Interfaces;
 using Hangfire;
+using Hangfire.SqlServer;
 using HangfireBasicAuthenticationFilter;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -23,8 +24,16 @@ public class Program
         builder.Services.AddHangfire(config => config
         .UseSimpleAssemblyNameTypeSerializer()
         .UseRecommendedSerializerSettings()
-        .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection"))
-        );
+        .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection"),
+        new SqlServerStorageOptions
+        {
+            CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+            SlidingInvisibilityTimeout= TimeSpan.FromMinutes(5),
+            QueuePollInterval=TimeSpan.Zero,
+            UseRecommendedIsolationLevel=true,
+            DisableGlobalLocks = true
+        }
+        ));
         builder.Services.AddHangfireServer();
 
         //Add DataBase to container
